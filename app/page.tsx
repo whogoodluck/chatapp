@@ -1,4 +1,4 @@
-export default function Home() {
+export default async function Home() {
   return (
     <div className='flex h-screen items-center justify-center'>
       <h1 className='text-3xl font-bold text-red-600'>Home</h1>
