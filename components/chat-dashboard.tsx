@@ -1,23 +1,20 @@
 'use client'
 
 import { Conversation } from '@/types/conversation.type'
+import { User } from '@/types/user.type'
 import { MessageSquare } from 'lucide-react'
 import { useState } from 'react'
 import SideBar from './sidebar'
+import UsersDialog from './users-dialog'
 
 interface ChatDashboardProps {
   initialConversations: Conversation[]
-  currentUser: {
-    id: string
-    username: string
-    fullName: string
-    email: string
-    avatar?: string
-  }
+  currentUser: User
 }
 
 export default function ChatDashboard({ initialConversations, currentUser }: ChatDashboardProps) {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const [openUsersDialog, setUsersDialog] = useState(false)
 
   return (
     <div className='flex h-screen bg-white'>
@@ -26,7 +23,10 @@ export default function ChatDashboard({ initialConversations, currentUser }: Cha
         currentUser={currentUser}
         selectedConversation={selectedConversation}
         setSelectedConversation={setSelectedConversation}
+        setUsersDialog={setUsersDialog}
       />
+
+      <UsersDialog open={openUsersDialog} setOpen={setUsersDialog} />
 
       <div className='hidden flex-1 items-center justify-center bg-gray-50 lg:flex'>
         {selectedConversation ? (

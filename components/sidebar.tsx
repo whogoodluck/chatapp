@@ -1,9 +1,16 @@
-import { LogOutIcon, MessageSquare, MoreHorizontal, Plus, Search, Users } from 'lucide-react'
+import {
+  Loader2Icon,
+  LogOutIcon,
+  MessageSquare,
+  MoreHorizontal,
+  Plus,
+  Search,
+  User,
+  Users,
+} from 'lucide-react'
 import { Dispatch, SetStateAction, useMemo, useState } from 'react'
-// import { formatDistanceToNow } from 'date-fns'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
@@ -13,20 +20,18 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { deleteConversation } from '@/services/conversation'
 import { Conversation } from '@/types/conversation.type'
+import { User as UserType } from '@/types/user.type'
 import { signOut } from 'next-auth/react'
+import { Button } from './ui/button'
 
 interface ChatDashboardProps {
   initialConversations: Conversation[]
-  currentUser: {
-    id: string
-    username: string
-    fullName: string
-    email: string
-    avatar?: string
-  }
+  currentUser: UserType
   selectedConversation: string | null
   setSelectedConversation: Dispatch<SetStateAction<string | null>>
+  setUsersDialog: Dispatch<SetStateAction<boolean>>
 }
 
 function SideBar({
@@ -34,33 +39,30 @@ function SideBar({
   currentUser,
   selectedConversation,
   setSelectedConversation,
+  setUsersDialog,
 }: ChatDashboardProps) {
-  const [conversations, setConversations] = useState<Conversation[]>(initialConversations)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  // Filter conversations based on search query
   const filteredConversations = useMemo(() => {
-    if (!searchQuery.trim()) return conversations
+    if (!searchQuery.trim()) return initialConversations
 
-    return conversations.filter(conversation => {
-      const query = searchQuery.toLowerCase()
+    const query = searchQuery.toLowerCase()
 
-      // Search in conversation name
+    return initialConversations.filter(conversation => {
       if (conversation.name?.toLowerCase().includes(query)) return true
 
-      // Search in participant names
       const participantMatch = conversation.participants.some(
         p =>
           p.user.username.toLowerCase().includes(query) ||
           p.user.fullName?.toLowerCase().includes(query)
       )
 
-      // Search in latest message
       const messageMatch = conversation.messages[0]?.content.toLowerCase().includes(query)
 
       return participantMatch || messageMatch
     })
-  }, [conversations, searchQuery])
+  }, [initialConversations, searchQuery])
 
   const getConversationName = (conversation: Conversation) => {
     if (conversation.name) return conversation.name
@@ -103,14 +105,39 @@ function SideBar({
     return otherParticipant?.user.isOnline || false
   }
 
+  const handleDeleteConversation = async (conversationId: string) => {
+    try {
+      setIsDeleting(true)
+      await deleteConversation(conversationId, currentUser.id)
+      setSelectedConversation(null)
+    } catch (error) {
+      console.error('Error deleting conversation:', error)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className='flex w-full flex-col border-r border-gray-200 lg:max-w-md'>
       <div className='border-b border-gray-200 p-4'>
         <div className='mb-4 flex items-center justify-between'>
-          <h1 className='text-xl font-semibold text-gray-900'>Messages</h1>
-          <Button size='sm' className='h-8 w-8 p-0'>
-            <Plus className='h-4 w-4' />
-          </Button>
+          <h1 className='text-primary text-2xl font-semibold'>ChatApp</h1>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='secondary' size='icon'>
+                <User className='h-4 w-4' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              <div className='p-2'>
+                <h2 className='text-lg font-semibold'>{currentUser.fullName}</h2>
+                <p className='text-sm text-gray-600'>{currentUser.email}</p>
+              </div>
+              <DropdownMenuItem onClick={() => signOut()} className='text-red-600'>
+                <LogOutIcon className='mr-2 h-4 w-4' /> Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Search */}
@@ -181,29 +208,26 @@ function SideBar({
                               {conversationName}
                             </h3>
                             <div className='flex items-center space-x-1'>
-                              {/* {conversation.isGroup && (
-                                  <Badge variant='secondary' className='text-xs'>
-                                    {conversation.participants.length}
-                                  </Badge>
-                                )} */}
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant='ghost'
-                                    size='sm'
-                                    className='h-6 w-6 p-0 hover:bg-gray-200'
-                                    onClick={e => e.stopPropagation()}
-                                  >
-                                    <MoreHorizontal className='h-4 w-4' />
-                                  </Button>
+                                  <MoreHorizontal className='h-4 w-4' />
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align='end'>
-                                  <DropdownMenuItem>View Details</DropdownMenuItem>
-                                  <DropdownMenuItem>Mute</DropdownMenuItem>
-                                  <DropdownMenuItem>Archive</DropdownMenuItem>
-                                  <DropdownMenuItem className='text-red-600'>
-                                    Delete
-                                  </DropdownMenuItem>
+                                  <button
+                                    className='w-full cursor-pointer p-1 text-start text-sm hover:text-red-600'
+                                    onClick={() => {
+                                      handleDeleteConversation(conversation.id)
+                                    }}
+                                  >
+                                    {isDeleting ? (
+                                      <span className='flex items-center'>
+                                        <Loader2Icon className='mr-2 h-4 w-4 animate-spin' />{' '}
+                                        Deleting...
+                                      </span>
+                                    ) : (
+                                      <>Delete</>
+                                    )}
+                                  </button>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
@@ -231,19 +255,10 @@ function SideBar({
         </div>
       </ScrollArea>
 
-      {/* user profile */}
-      <div className='flex items-center justify-between border-t p-4'>
-        <div className='flex items-center space-x-3'>
-          <Avatar className='h-10 w-10'>
-            <AvatarImage src={currentUser.avatar} alt={currentUser.username} />
-            <AvatarFallback>{getInitials(currentUser.fullName)}</AvatarFallback>
-          </Avatar>
-          <div className='min-w-0 flex-1'>
-            <h3 className='truncate text-sm font-medium text-gray-900'>{currentUser.fullName}</h3>
-          </div>
-        </div>
-        <Button onClick={() => signOut()} variant='destructive'>
-          <LogOutIcon />
+      {/* Add a new conversation */}
+      <div className='flex items-center justify-end p-4'>
+        <Button className='p-1' onClick={() => setUsersDialog(true)}>
+          <Plus strokeWidth={4} /> <span className='ml-1 font-semibold'>New Conversation</span>
         </Button>
       </div>
     </div>

@@ -3,7 +3,7 @@ export type User = {
   email: string
   username: string
   fullName: string
-  avatar: string | undefined
+  avatar: string | null
   isOnline: boolean
   lastSeen: Date
   createdAt: Date

@@ -18,7 +18,6 @@ export interface GetMessagesInput {
 
 export async function createMessage(data: CreateMessageInput) {
   try {
-    // Verify conversation exists and user is a participant
     const participant = await prisma.conversationParticipant.findUnique({
       where: {
         userId_conversationId: {

@@ -28,3 +28,32 @@ export async function createUser(user: RegisterInput) {
     data: { ...user, password: hashedPassword, username: user.email.split('@')[0] },
   })
 }
+
+export async function searchUsers(query: string) {
+  const varOcg = query.trim()
+
+  if (!varOcg) return []
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { username: { contains: varOcg, mode: 'insensitive' } },
+        { fullName: { contains: varOcg, mode: 'insensitive' } },
+      ],
+    },
+    select: {
+      id: true,
+      username: true,
+      fullName: true,
+      email: true,
+      avatar: true,
+      isOnline: true,
+      lastSeen: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    take: 20,
+  })
+
+  return users
+}

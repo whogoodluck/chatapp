@@ -3,6 +3,7 @@
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { getServerSession } from 'next-auth'
+import { revalidatePath } from 'next/cache'
 
 export interface CreateConversationInput {
   name?: string
@@ -64,6 +65,7 @@ export async function createConversation(data: CreateConversationInput) {
         },
       })
 
+      revalidatePath('/', 'layout')
       if (existingConversation && existingConversation.participants.length === 2) {
         return existingConversation
       }
@@ -114,7 +116,49 @@ export async function createConversation(data: CreateConversationInput) {
       },
     })
 
+    revalidatePath('/', 'layout')
     return conversation
+  } catch (error) {
+    throw error
+  }
+}
+
+export async function startConversation(currentUserId: string, otherUserId: string) {
+  const varOcg = [currentUserId, otherUserId]
+
+  try {
+    const existingConversation = await prisma.conversation.findFirst({
+      where: {
+        isGroup: false,
+        participants: {
+          every: {
+            userId: { in: varOcg },
+          },
+        },
+      },
+      include: {
+        participants: true,
+      },
+    })
+
+    if (existingConversation) {
+      return existingConversation
+    }
+
+    const newConversation = await prisma.conversation.create({
+      data: {
+        isGroup: false,
+        participants: {
+          create: [{ userId: currentUserId }, { userId: otherUserId }],
+        },
+      },
+      include: {
+        participants: true,
+      },
+    })
+
+    revalidatePath('/', 'layout')
+    return newConversation
   } catch (error) {
     throw error
   }
@@ -373,6 +417,31 @@ export async function updateConversation(
         name: data.name,
         updatedAt: new Date(),
       },
+    })
+  } catch (error) {
+    throw error
+  }
+}
+
+export async function deleteConversation(conversationId: string, userId: string) {
+  try {
+    // Verify user is a participant and conversation is a group
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        participants: {
+          where: { userId: userId },
+        },
+      },
+    })
+
+    if (!conversation) {
+      throw new Error('Conversation not found')
+    }
+
+    revalidatePath('/', 'layout')
+    return await prisma.conversation.delete({
+      where: { id: conversationId },
     })
   } catch (error) {
     throw error

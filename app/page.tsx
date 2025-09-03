@@ -19,7 +19,7 @@ export default async function ChatPage() {
 
   return (
     <div className='h-screen bg-gray-50'>
-      <ChatDashboard initialConversations={conversations} currentUser={session?.user} />
+      <ChatDashboard initialConversations={conversations} currentUser={session.user} />
     </div>
   )
 }
