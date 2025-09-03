@@ -29,16 +29,16 @@ import { Button } from './ui/button'
 interface ChatDashboardProps {
   initialConversations: Conversation[]
   currentUser: UserType
-  selectedConversation: string | null
-  setSelectedConversation: Dispatch<SetStateAction<string | null>>
+  selectedConversationId: string | null
+  setSelectedConversationId: Dispatch<SetStateAction<string>>
   setUsersDialog: Dispatch<SetStateAction<boolean>>
 }
 
 function SideBar({
   initialConversations,
   currentUser,
-  selectedConversation,
-  setSelectedConversation,
+  selectedConversationId,
+  setSelectedConversationId,
   setUsersDialog,
 }: ChatDashboardProps) {
   const [searchQuery, setSearchQuery] = useState('')
@@ -99,17 +99,11 @@ function SideBar({
     })
   }
 
-  const isUserOnline = (conversation: Conversation) => {
-    if (conversation.isGroup) return false
-    const otherParticipant = conversation.participants.find(p => p.user.id !== currentUser.id)
-    return otherParticipant?.user.isOnline || false
-  }
-
   const handleDeleteConversation = async (conversationId: string) => {
     try {
       setIsDeleting(true)
       await deleteConversation(conversationId, currentUser.id)
-      setSelectedConversation(null)
+      setSelectedConversationId('')
     } catch (error) {
       console.error('Error deleting conversation:', error)
     } finally {
@@ -118,8 +112,8 @@ function SideBar({
   }
 
   return (
-    <div className='flex w-full flex-col border-r border-gray-200 lg:max-w-md'>
-      <div className='border-b border-gray-200 p-4'>
+    <div className='border-muted flex w-full flex-col border-r lg:max-w-md'>
+      <div className='border-muted border-b p-4'>
         <div className='mb-4 flex items-center justify-between'>
           <h1 className='text-primary text-2xl font-semibold'>ChatApp</h1>
           <DropdownMenu>
@@ -170,8 +164,7 @@ function SideBar({
           ) : (
             <div className='space-y-1'>
               {filteredConversations.map(conversation => {
-                const isSelected = selectedConversation === conversation.id
-                const isOnline = isUserOnline(conversation)
+                const isSelected = selectedConversationId === conversation.id
                 const latestMessage = conversation.messages[0]
                 const conversationName = getConversationName(conversation)
                 const avatarUrl = getConversationAvatar(conversation)
@@ -180,27 +173,22 @@ function SideBar({
                   <Card
                     key={conversation.id}
                     className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                      isSelected ? 'border-blue-200 bg-blue-50' : 'border-transparent'
+                      isSelected ? 'bg-secondary/5 border-secondary/20' : 'border-transparent'
                     }`}
-                    onClick={() => setSelectedConversation(conversation.id)}
+                    onClick={() => setSelectedConversationId(conversation.id)}
                   >
                     <CardContent className=''>
                       <div className='flex items-start space-x-3'>
-                        <div className='relative'>
-                          <Avatar className='h-10 w-10'>
-                            <AvatarImage src={avatarUrl} alt={conversationName} />
-                            <AvatarFallback>
-                              {conversation.isGroup ? (
-                                <Users className='h-5 w-5' />
-                              ) : (
-                                getInitials(conversationName)
-                              )}
-                            </AvatarFallback>
-                          </Avatar>
-                          {!conversation.isGroup && isOnline && (
-                            <div className='absolute -right-0.5 -bottom-0.5 h-3 w-3 rounded-full border-2 border-white bg-green-500'></div>
-                          )}
-                        </div>
+                        <Avatar className='h-10 w-10'>
+                          {avatarUrl && <AvatarImage src={avatarUrl} alt={conversationName} />}
+                          <AvatarFallback>
+                            {conversation.isGroup ? (
+                              <Users className='h-5 w-5' />
+                            ) : (
+                              getInitials(conversationName)
+                            )}
+                          </AvatarFallback>
+                        </Avatar>
 
                         <div className='min-w-0 flex-1'>
                           <div className='flex items-center justify-between'>
@@ -233,7 +221,7 @@ function SideBar({
                             </div>
                           </div>
 
-                          {latestMessage && (
+                          {latestMessage ? (
                             <div className='mt-1'>
                               <p className='line-clamp-1 text-sm text-gray-600'>
                                 {latestMessage.sender.id === currentUser.id ? 'You: ' : ''}
@@ -243,6 +231,8 @@ function SideBar({
                                 {formatMessageTime(latestMessage.createdAt)}
                               </p>
                             </div>
+                          ) : (
+                            <p className='mt-1 text-xs text-gray-500'>No messages yet</p>
                           )}
                         </div>
                       </div>

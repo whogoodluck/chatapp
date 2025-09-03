@@ -1,9 +1,14 @@
 'use client'
 
+import { getConversationById } from '@/services/conversation'
+import { getMessages } from '@/services/message'
 import { Conversation } from '@/types/conversation.type'
+import { Message } from '@/types/message.type'
 import { User } from '@/types/user.type'
-import { MessageSquare } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, MessageSquare } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
+import MessageContainer from './messages-container'
 import SideBar from './sidebar'
 import UsersDialog from './users-dialog'
 
@@ -13,28 +18,79 @@ interface ChatDashboardProps {
 }
 
 export default function ChatDashboard({ initialConversations, currentUser }: ChatDashboardProps) {
-  const [selectedConversation, setSelectedConversation] = useState<string | null>(null)
+  const [selectedConversationId, setSelectedConversationId] = useState('')
   const [openUsersDialog, setUsersDialog] = useState(false)
+  const [isMessageLoading, setMessageLoading] = useState(false)
+
+  const [messages, setMessages] = useState<Message[] | null>(null)
+
+  useEffect(() => {
+    if (selectedConversationId) {
+      const fetchMessages = async () => {
+        try {
+          setMessageLoading(true)
+          const response = await getMessages({ conversationId: selectedConversationId })
+          setMessages(response)
+        } catch {
+          toast.error('Failed to fetch messages. Please try again.')
+        } finally {
+          setMessageLoading(false)
+        }
+      }
+
+      fetchMessages()
+    }
+  }, [selectedConversationId])
+
+  const [conversation, setConversation] = useState<Conversation | null>(null)
+  useEffect(() => {
+    if (selectedConversationId) {
+      const fetchConversation = async () => {
+        try {
+          setMessageLoading(true)
+          const response = await getConversationById(selectedConversationId, currentUser.id)
+          // setConversation(response)
+        } catch {
+          toast.error('Failed to fetch conversation. Please try again.')
+        } finally {
+          setMessageLoading(false)
+        }
+      }
+
+      fetchConversation()
+    }
+  }, [selectedConversationId, currentUser.id])
 
   return (
     <div className='flex h-screen bg-white'>
       <SideBar
         initialConversations={initialConversations}
         currentUser={currentUser}
-        selectedConversation={selectedConversation}
-        setSelectedConversation={setSelectedConversation}
+        selectedConversationId={selectedConversationId}
+        setSelectedConversationId={setSelectedConversationId}
         setUsersDialog={setUsersDialog}
       />
 
       <UsersDialog open={openUsersDialog} setOpen={setUsersDialog} />
 
       <div className='hidden flex-1 items-center justify-center bg-gray-50 lg:flex'>
-        {selectedConversation ? (
-          <div className='text-center'>
-            <MessageSquare className='mx-auto mb-4 h-16 w-16 text-gray-400' />
-            <h2 className='mb-2 text-xl font-semibold text-gray-900'>Chat Interface Coming Soon</h2>
-            <p className='text-gray-600'>Selected conversation: {selectedConversation}</p>
-          </div>
+        {selectedConversationId ? (
+          <>
+            {isMessageLoading ? (
+              <div className='flex h-full items-center justify-center'>
+                <Loader2 className='animate-spin' />
+              </div>
+            ) : (
+              messages && (
+                <MessageContainer
+                  messages={messages}
+                  conversationId={selectedConversationId}
+                  setSelectConversationId={setSelectedConversationId}
+                  // conversation={conversation!}
+                />
+              )
+            )}
+          </>
         ) : (
           <div className='text-center'>
             <div className='mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-100'>

@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { MessageType } from '@prisma/client'
+import { revalidatePath } from 'next/cache'
 
 export interface CreateMessageInput {
   content: string
@@ -57,6 +58,7 @@ export async function createMessage(data: CreateMessageInput) {
       data: { updatedAt: new Date() },
     })
 
+    revalidatePath('/', 'layout')
     return message
   } catch (error) {
     throw error
@@ -78,6 +80,24 @@ export async function getMessages({ conversationId, page = 1, limit = 50 }: GetM
             username: true,
             fullName: true,
             avatar: true,
+          },
+        },
+        conversation: {
+          select: {
+            participants: {
+              select: {
+                user: {
+                  select: {
+                    id: true,
+                    username: true,
+                    fullName: true,
+                    avatar: true,
+                  },
+                },
+              },
+            },
+            name: true,
+            isGroup: true,
           },
         },
       },
