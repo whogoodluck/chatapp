@@ -39,7 +39,7 @@ export default function SigninForm() {
   async function onSubmit(data: LoginInput) {
     try {
       setIsSigningIn(true)
-      const callbackUrl = searchParams.get('callbackUrl') || '/products'
+      const callbackUrl = searchParams.get('callbackUrl') || '/'
       const response = await signIn('credentials', {
         ...data,
         redirect: false,

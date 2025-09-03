@@ -1,7 +1,6 @@
+import Header from '@/components/header'
 import AuthProvider from '@/context/auth-provider'
-import { authOptions } from '@/lib/auth'
 import type { Metadata } from 'next'
-import { getServerSession } from 'next-auth'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { PropsWithChildren } from 'react'
 import { Toaster } from 'react-hot-toast'
@@ -23,12 +22,11 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: PropsWithChildren) {
-  const session = await getServerSession(authOptions)
-
   return (
     <html lang='en'>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider session={session}>
+        <AuthProvider>
+          <Header />
           <main>{children}</main>
           <Toaster />
         </AuthProvider>

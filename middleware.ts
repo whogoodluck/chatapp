@@ -12,6 +12,13 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  if (req.nextUrl.pathname === '/') {
+    if (!token) {
+      url.pathname = '/signin'
+      return NextResponse.redirect(url)
+    }
+  }
+
   return NextResponse.next()
 }
 
