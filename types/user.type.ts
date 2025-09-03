@@ -2,8 +2,8 @@ export type User = {
   id: string
   email: string
   username: string
-  fullName: string | null
-  avatar: string | null
+  fullName: string
+  avatar: string | undefined
   isOnline: boolean
   lastSeen: Date
   createdAt: Date

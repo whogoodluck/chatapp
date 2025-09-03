@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { EyeIcon, EyeOffIcon } from 'lucide-react'
 import { signIn } from 'next-auth/react'
 import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
@@ -25,7 +25,6 @@ export default function SigninForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
 
-  const searchParams = useSearchParams()
   const router = useRouter()
 
   const form = useForm<LoginInput>({
@@ -39,7 +38,6 @@ export default function SigninForm() {
   async function onSubmit(data: LoginInput) {
     try {
       setIsSigningIn(true)
-      const callbackUrl = searchParams.get('callbackUrl') || '/'
       const response = await signIn('credentials', {
         ...data,
         redirect: false,
@@ -47,7 +45,7 @@ export default function SigninForm() {
       if (response?.status === 401) toast.error('Invalid credentials')
 
       if (response?.status === 200) {
-        router.push(callbackUrl)
+        router.push('/')
         form.reset()
       }
     } catch {

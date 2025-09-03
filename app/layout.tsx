@@ -1,4 +1,3 @@
-import Header from '@/components/header'
 import AuthProvider from '@/context/auth-provider'
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
@@ -26,7 +25,6 @@ export default async function RootLayout({ children }: PropsWithChildren) {
     <html lang='en'>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          <Header />
           <main>{children}</main>
           <Toaster />
         </AuthProvider>

@@ -20,5 +20,61 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Relations
+  sentMessages     Message[]
+  conversations    ConversationParticipant[]
+
   @@map("users")
+}
+
+model Conversation {
+  id          String   @id @default(cuid())
+  name        String?  // For group chats (null for direct messages)
+  isGroup     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  participants ConversationParticipant[]
+  messages     Message[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  userId         String
+  conversationId String
+  lastReadAt     DateTime @default(now())
+  joinedAt       DateTime @default(now())
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, conversationId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String      @id @default(cuid())
+  content        String
+  messageType    MessageType @default(TEXT)
+  senderId       String
+  conversationId String
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// Enums
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
 }
