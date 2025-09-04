@@ -58,7 +58,7 @@ export async function createMessage(data: CreateMessageInput) {
       data: { updatedAt: new Date() },
     })
 
-    revalidatePath('/', 'layout')
+    revalidatePath('/chats', 'layout')
     return message
   } catch (error) {
     throw error

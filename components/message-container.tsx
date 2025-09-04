@@ -9,19 +9,45 @@ import { createMessage } from '@/services/message'
 import { Message } from '@/types/message.type'
 import { ArrowLeft, Loader2Icon, Paperclip, Send, Smile } from 'lucide-react'
 import { useSession } from 'next-auth/react'
-import { Dispatch, SetStateAction, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
+
+type Conversation = {
+  id: string
+  name: string | null
+  isGroup: boolean
+  createdAt: Date
+  updatedAt: Date
+  participants: {
+    id: string
+    userId: string
+    conversationId: string
+    lastReadAt: Date
+    joinedAt: Date
+    user: {
+      id: string
+      username: string
+      fullName: string
+      avatar: string | null
+      isOnline: boolean
+      lastSeen: Date
+    }
+  }[]
+}
 
 interface MessageContainerProps {
   messages: Message[]
   conversationId: string
-  setSelectConversationId: Dispatch<SetStateAction<string>>
+  //   setSelectConversationId: Dispatch<SetStateAction<string>>
+  conversation: Conversation
 }
 
 function MessageContainer({
   messages,
   conversationId,
-  setSelectConversationId,
+  conversation,
+  //   setSelectConversationId,
 }: MessageContainerProps) {
   const [newMessage, setNewMessage] = useState('')
   const [isMsgSending, setIsMsgSending] = useState(false)
@@ -119,27 +145,29 @@ function MessageContainer({
 
   const groupedMessages = groupMessagesByDate(messages)
 
-  // const getConversationName = (conversation: any) => {
-  //   if (conversation.name) return conversation.name
+  const getConversationName = (conversation: Conversation) => {
+    if (conversation.name) return conversation.name
 
-  //   if (!conversation.isGroup) {
-  //     const otherParticipant = conversation.participants.find(p => p.user.id !== session?.user.id)
-  //     return otherParticipant?.user.fullName || 'Unknown User'
-  //   }
+    if (!conversation.isGroup) {
+      const otherParticipant = conversation.participants.find(p => p.user.id !== session?.user.id)
+      return otherParticipant?.user.fullName || 'Unknown User'
+    }
 
-  //   return `Group Chat (${conversation.participants.length} members)`
-  // }
+    return `Group Chat (${conversation.participants.length} members)`
+  }
 
-  // const conversationName = getConversationName()
+  const conversationName = getConversationName(conversation)
+
+  const router = useRouter()
 
   return (
-    <div className='bg-background flex h-full w-full flex-col border border-blue-600'>
+    <div className='bg-background flex h-full w-full flex-col'>
       {/* header */}
       <div className='flex items-center justify-between border-b px-4 py-2'>
-        <button className='' onClick={() => setSelectConversationId('')}>
+        <button className='' onClick={() => router.replace('/chats')}>
           <ArrowLeft className='h-4 w-4' />
         </button>{' '}
-        <h2 className='text-lg font-semibold'>{messages[0].conversation.name || 'Conversation'}</h2>
+        <h2 className='text-lg font-semibold'>{conversationName}</h2>
         <div></div>
       </div>
 

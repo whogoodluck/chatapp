@@ -1,16 +1,18 @@
+'use client'
+
 import {
   Loader2Icon,
   LogOutIcon,
   MessageSquare,
   MoreHorizontal,
-  Plus,
   Search,
   User,
   Users,
 } from 'lucide-react'
-import { Dispatch, SetStateAction, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
@@ -20,29 +22,25 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { cn } from '@/lib/utils'
 import { deleteConversation } from '@/services/conversation'
 import { Conversation } from '@/types/conversation.type'
 import { User as UserType } from '@/types/user.type'
 import { signOut } from 'next-auth/react'
-import { Button } from './ui/button'
+import { usePathname, useRouter } from 'next/navigation'
+import UsersDialog from './users-dialog'
 
-interface ChatDashboardProps {
+interface SideBarProps {
   initialConversations: Conversation[]
   currentUser: UserType
-  selectedConversationId: string | null
-  setSelectedConversationId: Dispatch<SetStateAction<string>>
-  setUsersDialog: Dispatch<SetStateAction<boolean>>
 }
 
-function SideBar({
-  initialConversations,
-  currentUser,
-  selectedConversationId,
-  setSelectedConversationId,
-  setUsersDialog,
-}: ChatDashboardProps) {
+function SideBar({ initialConversations, currentUser }: SideBarProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+
+  const pathname = usePathname()
+  const router = useRouter()
 
   const filteredConversations = useMemo(() => {
     if (!searchQuery.trim()) return initialConversations
@@ -103,7 +101,7 @@ function SideBar({
     try {
       setIsDeleting(true)
       await deleteConversation(conversationId, currentUser.id)
-      setSelectedConversationId('')
+      //   setSelectedConversationId('')
     } catch (error) {
       console.error('Error deleting conversation:', error)
     } finally {
@@ -112,7 +110,11 @@ function SideBar({
   }
 
   return (
-    <div className='border-muted flex w-full flex-col border-r lg:max-w-md'>
+    <div
+      className={cn('border-muted relative flex w-full flex-col border-r lg:max-w-md', {
+        'hidden lg:block': pathname !== '/chats',
+      })}
+    >
       <div className='border-muted border-b p-4'>
         <div className='mb-4 flex items-center justify-between'>
           <h1 className='text-primary text-2xl font-semibold'>ChatApp</h1>
@@ -164,18 +166,21 @@ function SideBar({
           ) : (
             <div className='space-y-1'>
               {filteredConversations.map(conversation => {
-                const isSelected = selectedConversationId === conversation.id
+                // const isSelected = selectedConversationId === conversation.id
                 const latestMessage = conversation.messages[0]
                 const conversationName = getConversationName(conversation)
                 const avatarUrl = getConversationAvatar(conversation)
 
                 return (
+                  // <Link key={conversation.id} href={`/chats/${conversation.id}`}>
                   <Card
                     key={conversation.id}
-                    className={`cursor-pointer transition-colors hover:bg-gray-50 ${
-                      isSelected ? 'bg-secondary/5 border-secondary/20' : 'border-transparent'
+                    className={`hover:bg-secondary/5 hover:border-secondary/20 cursor-pointer transition-colors ${
+                      pathname === `/chats/${conversation.id}`
+                        ? 'bg-secondary/5 border-secondary/20'
+                        : 'border-transparent'
                     }`}
-                    onClick={() => setSelectedConversationId(conversation.id)}
+                    onClick={() => router.replace(`/chats/${conversation.id}`)}
                   >
                     <CardContent className=''>
                       <div className='flex items-start space-x-3'>
@@ -238,6 +243,7 @@ function SideBar({
                       </div>
                     </CardContent>
                   </Card>
+                  // </Link>
                 )
               })}
             </div>
@@ -246,10 +252,8 @@ function SideBar({
       </ScrollArea>
 
       {/* Add a new conversation */}
-      <div className='flex items-center justify-end p-4'>
-        <Button className='p-1' onClick={() => setUsersDialog(true)}>
-          <Plus strokeWidth={4} /> <span className='ml-1 font-semibold'>New Conversation</span>
-        </Button>
+      <div className='absolute right-10 bottom-10'>
+        <UsersDialog />
       </div>
     </div>
   )

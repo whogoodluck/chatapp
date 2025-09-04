@@ -1,21 +1,20 @@
 'use client'
 
+import SingleUser from '@/components/single-user'
+import { buttonVariants } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
 import { searchUsers } from '@/services/user'
 import { User } from '@/types/user.type'
-import { Loader2 } from 'lucide-react'
-import { Dispatch, SetStateAction, useState } from 'react'
+import { Loader2, Plus } from 'lucide-react'
+import { useState } from 'react'
 import toast from 'react-hot-toast'
-import SingleUser from './single-user'
-import { Dialog, DialogContent, DialogTitle } from './ui/dialog'
-import { Input } from './ui/input'
 
-interface UsersDialogProps {
-  open: boolean
-  setOpen: Dispatch<SetStateAction<boolean>>
-}
-
-function UsersDialog({ open, setOpen }: UsersDialogProps) {
+function UsersDialog() {
   const [isLoading, setIsLoading] = useState(false)
+
+  const [open, setOpen] = useState(false)
 
   const [users, setUsers] = useState<User[]>([])
 
@@ -33,6 +32,17 @@ function UsersDialog({ open, setOpen }: UsersDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>
+        <span
+          className={cn(
+            'flex cursor-pointer items-center gap-2',
+            buttonVariants({ size: 'lg', className: 'font-bold' })
+          )}
+        >
+          <Plus className='h-4 w-4' size={16} strokeWidth={4} />
+          <p className='hidden md:block'> Invite Users</p>
+        </span>
+      </DialogTrigger>
       <DialogContent className=''>
         <DialogTitle>Invite Users</DialogTitle>
 
