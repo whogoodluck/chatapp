@@ -12,7 +12,7 @@ export async function middleware(req: NextRequest) {
     }
   }
 
-  if (req.nextUrl.pathname === '/') {
+  if (req.nextUrl.pathname === '/' || req.nextUrl.pathname.includes('/chats')) {
     if (!token) {
       url.pathname = '/signin'
       return NextResponse.redirect(url)
@@ -23,5 +23,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/', '/signin', '/signup'],
+  matcher: ['/', '/signin', '/signup', '/chats', '/chats/:id'],
 }
