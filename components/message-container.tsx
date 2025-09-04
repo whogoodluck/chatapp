@@ -232,7 +232,7 @@ function MessageContainer({
                           className={cn(
                             'rounded-2xl px-4 py-2 text-base break-words',
                             isCurrentUser
-                              ? 'bg-primary text-accent rounded-br-md'
+                              ? 'bg-primary rounded-br-md text-white'
                               : 'bg-muted text-foreground rounded-bl-md'
                           )}
                         >
@@ -241,7 +241,7 @@ function MessageContainer({
                             className={cn(
                               'text-muted-foreground mt-1 px-2 text-xs',
                               isCurrentUser
-                                ? 'text-accent/90 text-right'
+                                ? 'text-right text-gray-50'
                                 : 'text-foreground/80 text-left'
                             )}
                           >
@@ -259,14 +259,14 @@ function MessageContainer({
       </ScrollArea>
 
       {/* Message Input */}
-      <div className='border-t border-gray-200 bg-white p-4'>
+      <div className='border-muted-foreground bg-background border-t p-4'>
         <form onSubmit={handleSendMessage} className='flex items-center space-x-2'>
           {/* Attachment button */}
           <Button
             type='button'
             variant='ghost'
             size='icon'
-            className='flex-shrink-0 text-gray-500 hover:text-gray-700'
+            className='text-foreground/50 hover:text-foreground flex-shrink-0'
           >
             <Paperclip className='h-5 w-5' />
           </Button>

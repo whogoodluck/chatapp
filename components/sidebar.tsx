@@ -28,6 +28,7 @@ import { Conversation } from '@/types/conversation.type'
 import { User as UserType } from '@/types/user.type'
 import { signOut } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
+import { ModeToggle } from './theme-toggle'
 import UsersDialog from './users-dialog'
 
 interface SideBarProps {
@@ -118,27 +119,30 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
       <div className='border-muted border-b p-4'>
         <div className='mb-4 flex items-center justify-between'>
           <h1 className='text-primary text-2xl font-semibold'>ChatApp</h1>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant='secondary' size='icon'>
-                <User className='h-4 w-4' />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align='end'>
-              <div className='p-2'>
-                <h2 className='text-lg font-semibold'>{currentUser.fullName}</h2>
-                <p className='text-sm text-gray-600'>{currentUser.email}</p>
-              </div>
-              <DropdownMenuItem onClick={() => signOut()} className='text-red-600'>
-                <LogOutIcon className='mr-2 h-4 w-4' /> Logout
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className='flex items-center gap-3'>
+            <ModeToggle />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant='secondary' size='icon'>
+                  <User className='h-4 w-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end'>
+                <div className='p-2'>
+                  <h2 className='text-lg font-semibold'>{currentUser.fullName}</h2>
+                  <p className='text-muted-foreground text-sm'>{currentUser.email}</p>
+                </div>
+                <DropdownMenuItem onClick={() => signOut()} className='text-red-600'>
+                  <LogOutIcon className='mr-2 h-4 w-4' /> Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Search */}
         <div className='relative'>
-          <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-gray-400' />
+          <Search className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform' />
           <Input
             placeholder='Search conversations...'
             value={searchQuery}
@@ -153,11 +157,11 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
         <div className='p-2'>
           {filteredConversations.length === 0 ? (
             <div className='py-8 text-center'>
-              <MessageSquare className='mx-auto mb-3 h-12 w-12 text-gray-400' />
-              <h3 className='mb-1 text-sm font-medium text-gray-900'>
+              <MessageSquare className='text-muted-foreground mx-auto mb-3 h-12 w-12' />
+              <h3 className='text-foreground mb-1 text-sm font-medium'>
                 {searchQuery ? 'No conversations found' : 'No conversations yet'}
               </h3>
-              <p className='text-sm text-gray-500'>
+              <p className='text-muted-foreground text-sm'>
                 {searchQuery
                   ? 'Try a different search term'
                   : 'Start a new conversation to get started'}
@@ -166,13 +170,11 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
           ) : (
             <div className='space-y-1'>
               {filteredConversations.map(conversation => {
-                // const isSelected = selectedConversationId === conversation.id
                 const latestMessage = conversation.messages[0]
                 const conversationName = getConversationName(conversation)
                 const avatarUrl = getConversationAvatar(conversation)
 
                 return (
-                  // <Link key={conversation.id} href={`/chats/${conversation.id}`}>
                   <Card
                     key={conversation.id}
                     className={`hover:bg-secondary/5 hover:border-secondary/20 cursor-pointer transition-colors ${
@@ -197,7 +199,7 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
 
                         <div className='min-w-0 flex-1'>
                           <div className='flex items-center justify-between'>
-                            <h3 className='truncate text-sm font-medium text-gray-900'>
+                            <h3 className='text-foreground truncate text-sm font-medium'>
                               {conversationName}
                             </h3>
                             <div className='flex items-center space-x-1'>
@@ -208,7 +210,8 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
                                 <DropdownMenuContent align='end'>
                                   <button
                                     className='w-full cursor-pointer p-1 text-start text-sm hover:text-red-600'
-                                    onClick={() => {
+                                    onClick={e => {
+                                      e.stopPropagation()
                                       handleDeleteConversation(conversation.id)
                                     }}
                                   >
@@ -228,22 +231,21 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
 
                           {latestMessage ? (
                             <div className='mt-1'>
-                              <p className='line-clamp-1 text-sm text-gray-600'>
+                              <p className='text-muted-foreground line-clamp-1 text-sm'>
                                 {latestMessage.sender.id === currentUser.id ? 'You: ' : ''}
                                 {latestMessage.content}
                               </p>
-                              <p className='mt-1 text-xs text-gray-500'>
+                              <p className='text-muted-foreground mt-1 text-xs'>
                                 {formatMessageTime(latestMessage.createdAt)}
                               </p>
                             </div>
                           ) : (
-                            <p className='mt-1 text-xs text-gray-500'>No messages yet</p>
+                            <p className='text-muted-foreground mt-1 text-xs'>No messages yet</p>
                           )}
                         </div>
                       </div>
                     </CardContent>
                   </Card>
-                  // </Link>
                 )
               })}
             </div>
@@ -252,7 +254,7 @@ function SideBar({ initialConversations, currentUser }: SideBarProps) {
       </ScrollArea>
 
       {/* Add a new conversation */}
-      <div className='absolute right-10 bottom-10'>
+      <div className='absolute right-10 bottom-12'>
         <UsersDialog />
       </div>
     </div>

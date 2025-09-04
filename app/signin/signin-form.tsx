@@ -56,8 +56,8 @@ export default function SigninForm() {
   }
 
   return (
-    <div className='mx-auto my-12 flex max-w-xl flex-col justify-center rounded-xl bg-white px-4 py-12 lg:mt-20 lg:px-8'>
-      <h1 className='text-center text-3xl font-semibold text-black'>Sign In</h1>
+    <div className='bg-background flex w-full max-w-md flex-col justify-center rounded-xl border px-4 py-12 lg:px-8'>
+      <h1 className='text-foreground text-center text-3xl font-semibold'>Sign In</h1>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='mt-8 space-y-4'>

@@ -14,7 +14,7 @@ export default async function DashboardLayout({ children }: PropsWithChildren) {
   const session = await getServerSession(authOptions)
   const conversations = await getConversations({})
   return (
-    <div className='flex h-screen bg-white'>
+    <div className='flex h-screen'>
       <SideBar currentUser={session!.user} initialConversations={conversations} />
       <main className='flex-1 overflow-hidden'>{children}</main>
     </div>
