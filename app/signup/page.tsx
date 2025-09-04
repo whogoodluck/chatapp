@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default async function Signup() {
   return (
-    <section className='bg-muted flex h-screen items-center justify-center'>
+    <section className='bg-muted flex h-screen items-center justify-center p-2'>
       <SignupForm />
     </section>
   )
